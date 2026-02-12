@@ -1,0 +1,282 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model tb_mes_alarm000 {
+  alarm_id    BigInt    @id @default(autoincrement())
+  equip_cd    String    @db.VarChar(50)
+  tag_cd      String    @db.VarChar(50)
+  threshold   Decimal   @db.Decimal(18, 6)
+  current_val Decimal   @db.Decimal(18, 6)
+  alarm_level String    @db.VarChar(20)
+  alarm_at    DateTime  @default(now()) @db.Timestamp(6)
+  resolved_at DateTime? @db.Timestamp(6)
+
+  @@index([equip_cd, alarm_at(sort: Desc)], map: "idx_alarm_equip_alarm_at")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model tb_mes_claim000 {
+  claim_cd      String    @id @db.VarChar(50)
+  opr_cd        String    @db.VarChar(50)
+  claim_type_cd String    @db.VarChar(50)
+  claim_st_cd   String    @default("OPEN") @db.VarChar(50)
+  iss_rmrk      String    @db.VarChar(4000)
+  created_by    String?   @db.VarChar(50)
+  created_at    DateTime  @default(now()) @db.Timestamp(6)
+  updated_by    String?   @db.VarChar(50)
+  updated_at    DateTime? @db.Timestamp(6)
+
+  @@index([opr_cd], map: "idx_claim_opr_cd")
+  @@index([claim_st_cd], map: "idx_claim_status")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model tb_mes_cnpt000 {
+  cnpt_cd    String   @id @db.VarChar(50)
+  cnpt_nm    String   @db.VarChar(200)
+  use_yn     String   @default("Y") @db.Char(1)
+  created_at DateTime @default(now()) @db.Timestamp(6)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model tb_mes_dept000 {
+  dept_cd    String   @id @db.VarChar(50)
+  dept_nm    String   @db.VarChar(100)
+  use_yn     String   @default("Y") @db.Char(1)
+  created_at DateTime @default(now()) @db.Timestamp(6)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model tb_mes_equip000 {
+  equip_cd   String   @id @db.VarChar(50)
+  equip_nm   String   @db.VarChar(200)
+  line_cd    String?  @db.VarChar(50)
+  use_yn     String   @default("Y") @db.Char(1)
+  created_at DateTime @default(now()) @db.Timestamp(6)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model tb_mes_file000 {
+  file_id      String   @id @db.Uuid
+  ref_type     String   @db.VarChar(50)
+  ref_id       String   @db.VarChar(50)
+  file_kind    String   @db.VarChar(50)
+  orig_name    String   @db.VarChar(255)
+  mime_type    String?  @db.VarChar(100)
+  storage_path String   @db.VarChar(1000)
+  created_by   String?  @db.VarChar(50)
+  created_at   DateTime @default(now()) @db.Timestamp(6)
+
+  @@index([created_at], map: "idx_file_created_at")
+  @@index([ref_type, ref_id], map: "idx_file_ref")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model tb_mes_item100 {
+  item_cd    String    @id @db.VarChar(50)
+  item_nm    String    @db.VarChar(200)
+  spec_json  Json?
+  use_yn     String    @default("Y") @db.Char(1)
+  created_at DateTime  @default(now()) @db.Timestamp(6)
+  updated_at DateTime? @db.Timestamp(6)
+
+  @@index([spec_json], map: "idx_item_spec_json_gin", type: Gin)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model tb_mes_item_template_map120 {
+  item_cd          String   @db.VarChar(50)
+  prcs_template_cd String   @db.VarChar(50)
+  active_yn        String   @default("Y") @db.Char(1)
+  created_at       DateTime @default(now()) @db.Timestamp(6)
+
+  @@id([item_cd, prcs_template_cd])
+  @@index([active_yn], map: "idx_item_template_map_active")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model tb_mes_lot000 {
+  lot_cd     String   @id @db.VarChar(50)
+  opr_cd     String   @db.VarChar(50)
+  item_cd    String   @db.VarChar(50)
+  qty        Decimal  @default(0) @db.Decimal(14, 3)
+  created_at DateTime @default(now()) @db.Timestamp(6)
+
+  @@index([created_at], map: "idx_lot_created_at")
+  @@index([opr_cd], map: "idx_lot_opr_cd")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model tb_mes_opr000 {
+  opr_cd                String    @id @db.VarChar(50)
+  ord_item_cd           String    @unique(map: "uq_opr_ord_item_cd") @db.VarChar(50)
+  opr_st_cd             String    @default("WAIT") @db.VarChar(50)
+  item_prcs_template_cd String?   @db.VarChar(50)
+  started_at            DateTime? @db.Timestamp(6)
+  finished_at           DateTime? @db.Timestamp(6)
+  created_by            String?   @db.VarChar(50)
+  created_at            DateTime  @default(now()) @db.Timestamp(6)
+  updated_by            String?   @db.VarChar(50)
+  updated_at            DateTime? @db.Timestamp(6)
+
+  @@index([created_at], map: "idx_opr_created_at")
+  @@index([opr_st_cd], map: "idx_opr_status")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model tb_mes_opr_step100 {
+  opr_step_id   BigInt    @id @default(autoincrement())
+  opr_cd        String    @db.VarChar(50)
+  unit_prcs_id  BigInt
+  seq_no        Int
+  step_st_cd    String    @default("WAIT") @db.VarChar(50)
+  start_at      DateTime? @db.Timestamp(6)
+  end_at        DateTime? @db.Timestamp(6)
+  worker_id     String?   @db.VarChar(50)
+  abnormal_rmrk String?   @db.VarChar(2000)
+  created_at    DateTime  @default(now()) @db.Timestamp(6)
+  updated_at    DateTime? @db.Timestamp(6)
+
+  @@unique([opr_cd, seq_no])
+  @@index([opr_cd, seq_no], map: "idx_opr_step_opr_seq")
+  @@index([step_st_cd], map: "idx_opr_step_status")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model tb_mes_ord000 {
+  ord_cd          String    @id @db.VarChar(50)
+  cnpt_cd         String    @db.VarChar(50)
+  delivery_req_dt DateTime? @db.Date
+  ord_st_cd       String    @default("NEW") @db.VarChar(50)
+  created_by      String?   @db.VarChar(50)
+  created_at      DateTime  @default(now()) @db.Timestamp(6)
+
+  @@index([cnpt_cd], map: "idx_ord_cnpt_cd")
+  @@index([delivery_req_dt], map: "idx_ord_delivery_req_dt")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model tb_mes_ord100 {
+  ord_item_cd String    @id @db.VarChar(50)
+  ord_cd      String    @db.VarChar(50)
+  item_cd     String    @db.VarChar(50)
+  ord_cnt     Decimal   @default(0) @db.Decimal(14, 3)
+  due_dt      DateTime? @db.Date
+  created_at  DateTime  @default(now()) @db.Timestamp(6)
+
+  @@index([item_cd], map: "idx_ord100_item_cd")
+  @@index([ord_cd], map: "idx_ord100_ord_cd")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model tb_mes_prcs_dept_his010 {
+  prcs_dept_map_id BigInt    @id @default(autoincrement())
+  unit_prcs_id     BigInt
+  dept_cd          String    @db.VarChar(50)
+  effective_from   DateTime  @default(now()) @db.Timestamp(6)
+  effective_to     DateTime? @db.Timestamp(6)
+  created_at       DateTime  @default(now()) @db.Timestamp(6)
+
+  @@index([dept_cd], map: "idx_prcs_dept_his_dept_cd")
+  @@index([unit_prcs_id, effective_from(sort: Desc)], map: "idx_prcs_dept_his_unit_from")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model tb_mes_prcs_template100 {
+  prcs_template_cd String    @id @db.VarChar(50)
+  prcs_template_nm String    @db.VarChar(200)
+  version_no       Int       @default(1)
+  use_yn           String    @default("Y") @db.Char(1)
+  created_by       String?   @db.VarChar(50)
+  created_at       DateTime  @default(now()) @db.Timestamp(6)
+  updated_by       String?   @db.VarChar(50)
+  updated_at       DateTime? @db.Timestamp(6)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model tb_mes_refresh_token000 {
+  token_id   String    @id @db.Uuid
+  user_id    String    @db.VarChar(50)
+  token_hash String    @db.VarChar(255)
+  expires_at DateTime  @db.Timestamp(6)
+  revoked_at DateTime? @db.Timestamp(6)
+  created_at DateTime  @default(now()) @db.Timestamp(6)
+
+  @@index([expires_at], map: "idx_refresh_token_expires_at")
+  @@index([user_id], map: "idx_refresh_token_user_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model tb_mes_role000 {
+  role_cd    String   @id @db.VarChar(50)
+  role_nm    String   @db.VarChar(100)
+  created_at DateTime @default(now()) @db.Timestamp(6)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model tb_mes_sensor_reading000 {
+  reading_id BigInt   @id @default(autoincrement())
+  equip_cd   String   @db.VarChar(50)
+  tag_cd     String   @db.VarChar(50)
+  val        Decimal  @db.Decimal(18, 6)
+  read_at    DateTime @default(now()) @db.Timestamp(6)
+
+  @@index([equip_cd, read_at(sort: Desc)], map: "idx_sensor_equip_read_at")
+  @@index([tag_cd, read_at(sort: Desc)], map: "idx_sensor_tag_read_at")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model tb_mes_unit_prcs110 {
+  unit_prcs_id     BigInt    @id @default(autoincrement())
+  prcs_template_cd String    @db.VarChar(50)
+  unit_prcs_cd     String    @db.VarChar(50)
+  unit_prcs_nm     String?   @db.VarChar(200)
+  seq_no           Int
+  std_time_sec     Int?
+  use_yn           String    @default("Y") @db.Char(1)
+  created_at       DateTime  @default(now()) @db.Timestamp(6)
+  updated_at       DateTime? @db.Timestamp(6)
+
+  @@unique([prcs_template_cd, seq_no])
+  @@unique([prcs_template_cd, unit_prcs_cd])
+  @@index([prcs_template_cd, seq_no], map: "idx_unit_prcs_template_seq")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model tb_mes_user000 {
+  user_id       String    @id @db.VarChar(50)
+  user_nm       String?   @db.VarChar(100)
+  user_type_cd  String?   @db.VarChar(50)
+  password_hash String    @db.VarChar(255)
+  mbl_tel_no    String?   @db.VarChar(20)
+  mbl_email     String?   @db.VarChar(100)
+  dept_cd       String?   @db.VarChar(50)
+  jbpgd_nm      String?   @db.VarChar(50)
+  user_rmrk     String?   @db.VarChar(2000)
+  ip            String?   @db.VarChar(50)
+  use_yn        String    @default("Y") @db.Char(1)
+  del_yn        String    @default("N") @db.Char(1)
+  last_login_at DateTime? @db.Timestamp(6)
+  created_by    String?   @db.VarChar(50)
+  created_at    DateTime  @default(now()) @db.Timestamp(6)
+  updated_by    String?   @db.VarChar(50)
+  updated_at    DateTime? @db.Timestamp(6)
+
+  @@index([dept_cd], map: "idx_user_dept_cd")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model tb_mes_user_role010 {
+  user_id    String   @db.VarChar(50)
+  role_cd    String   @db.VarChar(50)
+  created_at DateTime @default(now()) @db.Timestamp(6)
+
+  @@id([user_id, role_cd])
+  @@index([role_cd], map: "idx_user_role_role_cd")
+}
